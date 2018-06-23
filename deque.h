@@ -416,12 +416,12 @@ typename deque<T>::iterator deque<T>::insert(const_iterator pos, const T& val) {
     iterator ptr;
     if (dist(pos, begin()) <= dist(pos, end())) {
         _head = dec(_head);
-        for (ptr = begin(); ptr < pos - 1; ptr++) {
+        for (ptr = begin(); ptr != pos - 1; ptr++) {
             *ptr = *(ptr + 1);
         }
     } else {
         _tail = inc(_tail);
-        for (ptr = end() - 1; ptr > pos; ptr--) {
+        for (ptr = end() - 1; ptr != pos; ptr--) {
             *ptr = *(ptr - 1);
         }
     }

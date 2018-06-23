@@ -65,5 +65,18 @@ int main() {
     for (auto it = c.begin(); it != c.end(); it++) {
         std::cout << *it << '\n';
     }
+
+    for (size_t i = 0; i < onemore.size(); i++) {
+        std::cout << onemore[i] << '\n';
+    }
+    std::cout << '\n';
+
+    while (onemore.size() < 10) {
+        std::cout << *onemore.insert(onemore.end() - 3, onemore.size() + 10) << '\n';
+    }
+    std::cout << '\n';
+    for (size_t i = 0; i < onemore.size(); i++) {
+        std::cout << onemore[i] << '\n';
+    }
     return 0;
 }
