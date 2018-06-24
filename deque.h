@@ -491,7 +491,6 @@ void deque<T>::expand(size_t n) {
         return;
     }
     size_t new_cap = std::max(n, static_cast<size_t>(EXPAND_FACTOR * _cap)) + 1;
-
     auto new_storage = (T*) operator new(sizeof(T) * new_cap);
     my_copy(_head, _tail, new_storage);
     finalize_me();
@@ -516,7 +515,7 @@ void swap(deque<T>& a, deque<T>& b) {
 
 template<typename T>
 void deque<T>::finalize_me() {
-    if (_data == nullptr || size() == 0) {
+    if (_data == nullptr) {
         return;
     }
     for(T* ptr = _head; ptr != _tail; ptr = inc(ptr)) {
@@ -527,7 +526,7 @@ void deque<T>::finalize_me() {
 
 template<typename T>
 void deque<T>::finalize(T* data, size_t len) {
-    if (data == nullptr || len == 0) {
+    if (data == nullptr) {
         return;
     }
     for (size_t i = 0; i < len; i++) {
