@@ -314,8 +314,8 @@ void deque<T>::push_back(T const& val) {
 template<typename T>
 void deque<T>::pop_back() {
     assert(!empty());
-    _tail->~T();
     _tail = dec(_tail);
+    _tail->~T();
 }
 
 template<typename T>
