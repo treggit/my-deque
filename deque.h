@@ -309,12 +309,8 @@ size_t deque<T>::size() const {
 template<typename T>
 void deque<T>::push_back(T const& val) {
     expand(size() + 1);
-    try {
-        new(_tail) T(val);
-        _tail = inc(_tail);
-    } catch(...) {
-        _tail->~T();
-    }
+    new(_tail) T(val);
+    _tail = inc(_tail);
 }
 
 template<typename T>
@@ -337,12 +333,8 @@ T const& deque<T>::back() const {
 template<typename T>
 void deque<T>::push_front(const T& val) {
     expand(size() + 1);
-    try {
-        new(dec(_head)) T(val);
-        _head = dec(_head);
-    } catch(...) {
-        dec(_head)->~T();
-    }
+    new(dec(_head)) T(val);
+    _head = dec(_head);
 }
 
 template<typename T>
