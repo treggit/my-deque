@@ -9,29 +9,6 @@
 #include <cassert>
 #include <algorithm>
 
-namespace finalizer {
-
-    template<typename T>
-    typename std::enable_if<std::is_trivially_destructible<T>::value, void>::type destruct(T* data, size_t len) {}
-
-    template<typename T>
-    typename std::enable_if<!std::is_trivially_destructible<T>::value, void>::type destruct(T* data, size_t len) {
-        for (size_t i = 0; i < len; i++) {
-            data[i].~T();
-        }
-    }
-
-
-    template <typename T>
-    void finalize(T* data, size_t len) {
-        if (data == nullptr || len == 0) {
-            return;
-        }
-        destruct<T>(data, len);
-        operator delete(data);
-    }
-}
-
 template <typename T>
 struct deque {
 private:
@@ -102,6 +79,8 @@ private:
     void expand(size_t n);
     ptrdiff_t dist(const_iterator a, const_iterator b) const;
     void my_copy(T* first, T* last, T* dst);
+    void finalize_me();
+    void finalize(T* data, size_t len);
 };
 
 
@@ -301,7 +280,7 @@ deque<T>::~deque() {
 
 template<typename T>
 void deque<T>::clear() {
-    finalizer::finalize(_data, _cap);
+    finalize_me();
     _data = nullptr;
     _head = nullptr;
     _tail = nullptr;
@@ -323,36 +302,47 @@ size_t deque<T>::size() const {
 
 template<typename T>
 void deque<T>::push_back(T const& val) {
-    insert(end(), val);
+    expand(size() + 1);
+    try {
+        new(_tail) T(val);
+        _tail = inc(_tail);
+    } catch(...) {
+        _tail->~T();
+    }
 }
 
 template<typename T>
 void deque<T>::pop_back() {
     assert(!empty());
+    _tail->~T();
     _tail = dec(_tail);
-    (end())._ptr->~T();
 }
 
 template<typename T>
 T& deque<T>::back() {
-    return *(std::prev(end()));
+    return *(end() - 1);
 }
 
 template<typename T>
 T const& deque<T>::back() const {
-    return *(std::prev(end()));
+    return *(end() - 1);
 }
 
 template<typename T>
 void deque<T>::push_front(const T& val) {
-    insert(begin(), val);
+    expand(size() + 1);
+    try {
+        new(dec(_head)) T(val);
+        _head = dec(_head);
+    } catch(...) {
+        dec(_head)->~T();
+    }
 }
 
 template<typename T>
 void deque<T>::pop_front() {
-    assert(!empty());
+    _head->~T();
     _head = inc(_head);
-    dec(_head)->~T();
 }
 
 template<typename T>
@@ -407,63 +397,43 @@ typename deque<T>::const_reverse_iterator deque<T>::rend() const {
 
 template<typename T>
 typename deque<T>::iterator deque<T>::insert(const_iterator pos, const T& val) {
-//    if (_data == nullptr) {
-//        expand(MIN_SIZE);
-//    }
     size_t ind = dist(pos, begin());
-    expand(size() + 1);
     pos = const_iterator((begin() + ind)._ptr, _data, _data + _cap, _head);
     iterator ptr;
     if (dist(pos, begin()) <= dist(pos, end())) {
-        _head = dec(_head);
+        push_front(val);
+        pos = const_iterator((begin() + ind + 1)._ptr, _data, _data + _cap, _head);
         for (ptr = begin(); ptr != pos - 1; ptr++) {
-            *ptr = *(ptr + 1);
+            std::swap(*ptr, *(ptr + 1));
         }
     } else {
-        _tail = inc(_tail);
+        push_back(val);
+        pos = const_iterator((begin() + ind)._ptr, _data, _data + _cap, _head);
         for (ptr = end() - 1; ptr != pos; ptr--) {
-            *ptr = *(ptr - 1);
+            std::swap(*ptr, *(ptr - 1));
         }
     }
-    *ptr = val;
-    //expand(size() + 1);
     return ptr;
 }
 
 template<typename T>
 typename deque<T>::iterator deque<T>::erase(const_iterator pos) {
-    assert(!empty());
-    if (pos == begin()) {
-        pop_front();
-        return begin();
-    }
-    if (pos == end()) {
-        pop_back();
-        return end();
-    }
     size_t ind = dist(pos, begin());
     iterator ptr = iterator((begin() + ind)._ptr, _data, _data + _cap, _head);
-    (*this)[ind].~T();
 
     if (dist(pos, begin()) <= dist(pos, end())) {
         for (; ptr != begin(); ptr--) {
-            *ptr = *(ptr - 1);
+            std::swap(*ptr, *(ptr - 1));
         }
-        _head = inc(_head);
+        pop_front();
     } else {
         for (; ptr != end() - 1; ptr++) {
-            *ptr = *(ptr + 1);
+            std::swap(*ptr, *(ptr + 1));
         }
-        _tail = dec(_tail);
+        pop_back();
     }
-    (*ptr).~T();
     return iterator((begin() + ind)._ptr, _data, _data + _cap, _head);
 }
-
-//template<typename T>
-//deque_iterator <T> deque<T>::erase(deque_iterator<const T> first, deque_iterator<const T> last) {
-//    return nullptr;
-//}
 
 template<typename T>
 void deque<T>::swap(deque<T>& other) {
@@ -500,9 +470,15 @@ T const& deque<T>::operator[](size_t pos) const {
 template <typename T>
 void deque<T>::my_copy(T* first, T* last, T* dst) {
     size_t i = 0;
-    while (first != last) {
-        dst[i++] = *first;
-        first = inc(first);
+    try {
+        while (first != last) {
+            new(dst + i) T(*first);
+            first = inc(first);
+            i++;
+        }
+    } catch (...) {
+        finalize(dst, i);
+        throw;
     }
 }
 
@@ -515,7 +491,7 @@ void deque<T>::expand(size_t n) {
 
     auto new_storage = (T*) operator new(sizeof(T) * new_cap);
     my_copy(_head, _tail, new_storage);
-    finalizer::finalize(_data, _cap);
+    finalize_me();
     _data = new_storage;
     _tail = _data + size();
     _head = _data;
@@ -533,6 +509,28 @@ ptrdiff_t deque<T>::dist(const_iterator a, const_iterator b) const {
 template <typename T>
 void swap(deque<T>& a, deque<T>& b) {
     a.swap(b);
+}
+
+template<typename T>
+void deque<T>::finalize_me() {
+    if (_data == nullptr || size() == 0) {
+        return;
+    }
+    for(T* ptr = _head; ptr != _tail; ptr = inc(ptr)) {
+        ptr->~T();
+    }
+    operator delete(_data);
+}
+
+template<typename T>
+void deque<T>::finalize(T* data, size_t len) {
+    if (data == nullptr || len == 0) {
+        return;
+    }
+    for (size_t i = 0; i < len; i++) {
+        (data + i)->~T();
+    }
+    operator delete(data);
 }
 
 #endif //MY_DEQUE_DEQUE_H
