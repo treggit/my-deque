@@ -32,8 +32,8 @@ public:
     using value_type = T;
     using iterator = deque_iterator<T>;
     using const_iterator = deque_iterator<T const>;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+    using reverse_iterator = std::reverse_iterator<deque_iterator<T>>;
+    using const_reverse_iterator = std::reverse_iterator<deque_iterator<T const>>;
 
     deque();
     deque(deque const& other);
@@ -103,7 +103,10 @@ struct deque<T>::deque_iterator : std::iterator<std::random_access_iterator_tag,
     deque_iterator& operator=(deque_iterator<V> const& other) = default;
     ~deque_iterator() = default;
 
-    friend deque_iterator operator+(deque_iterator const& cur, size_t shift) {
+    friend deque_iterator operator+(deque_iterator const& cur, int shift) {
+        if (shift < 0) {
+            return cur - abs(shift);
+        }
         if (cur.size()) {
             shift %= cur.size();
         }
@@ -116,7 +119,10 @@ struct deque<T>::deque_iterator : std::iterator<std::random_access_iterator_tag,
         return deque_iterator(next, cur._dbegin, cur._dend, cur._dhead);
     }
 
-    friend deque_iterator operator-(deque_iterator const& cur, size_t shift) {
+    friend deque_iterator operator-(deque_iterator const& cur, int shift) {
+        if (shift < 0) {
+            return cur + abs(shift);
+        }
         if (cur.size()) {
             shift %= cur.size();
         }
