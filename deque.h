@@ -135,16 +135,16 @@ struct deque<T>::deque_iterator : std::iterator<std::random_access_iterator_tag,
         return deque_iterator(next, cur._dbegin, cur._dend, cur._dhead);
     }
 
-    friend deque_iterator operator+(size_t shift, deque_iterator const& cur) {
+    friend deque_iterator operator+(int shift, deque_iterator const& cur) {
         return cur + shift;
     }
 
-    deque_iterator& operator+=(size_t shift) {
+    deque_iterator& operator+=(int shift) {
         *this = *this + shift;
         return *this;
     }
 
-    deque_iterator& operator-=(size_t shift) {
+    deque_iterator& operator-=(int shift) {
         *this = *this - shift;
         return *this;
     }
@@ -266,9 +266,14 @@ deque<T>::deque()
 
 template<typename T>
 deque<T>::deque(deque<T> const& other) : deque() {
-    expand(other.size());
-    for (auto it = other.begin(); it != other.end(); it++) {
-        push_back(*it);
+    try {
+        expand(other.size());
+        for (auto it = other.begin(); it != other.end(); it++) {
+            push_back(*it);
+        }
+    } catch(...) {
+        clear();
+        throw;
     }
 }
 
