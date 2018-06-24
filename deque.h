@@ -97,7 +97,7 @@ struct deque<T>::deque_iterator : std::iterator<std::random_access_iterator_tag,
 
     template <typename U>
     deque_iterator(deque_iterator<U> const& other, typename std::enable_if<std::is_same<V, const U>::value
-                                                                  && std::is_const<V>::value, void>::type* = nullptr)
+                                                                           && std::is_const<V>::value, void>::type* = nullptr)
             : _ptr(other._ptr), _dbegin(other._dbegin), _dend(other._dend), _dhead(other._dhead) {}
 
     deque_iterator& operator=(deque_iterator<V> const& other) = default;
@@ -307,7 +307,7 @@ void deque<T>::push_back(T const& val) {
         new(_tail) T(val);
         _tail = inc(_tail);
     } catch(...) {
-        _tail->~T();
+        _tail->T();
     }
 }
 
