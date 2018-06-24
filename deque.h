@@ -307,7 +307,7 @@ void deque<T>::push_back(T const& val) {
         new(_tail) T(val);
         _tail = inc(_tail);
     } catch(...) {
-        _tail->T();
+        _tail->~T();
     }
 }
 

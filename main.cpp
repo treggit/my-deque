@@ -12,15 +12,17 @@ int main() {
     deque<std::string> c = d;
     c.insert(c.begin() + 3, "hehmda");
     for (auto it = c.begin(); it < c.end(); it++) {
-        std::cout << *it << '\n';
+        std::cout << *it << ' ';
     }
     while (c.size() > 3) {
         c.erase(c.end() - 2);
     }
     std::cout << '\n';
     for (auto it = c.begin(); it < c.end(); it++) {
-        std::cout << *it << '\n';
+        std::cout << *it << ' ';
     }
+    std::cout << '\n';
+
     std::cout << c[0] << '\n';
 
     deque<int> b;
@@ -44,39 +46,67 @@ int main() {
     }
     std::cout << onemore.size() << '\n';
     for (size_t i = 0; i < onemore.size(); i++) {
-        std::cout << onemore[i] << '\n';
+        std::cout << onemore[i] << ' ';
     }
     std::cout << '\n';
     while (onemore.size() > 4) {
-        std::cout << *onemore.erase(onemore.end() - onemore.size()) << '\n';
+        std::cout << *onemore.erase(onemore.end() - 2) << ' ';
     }
+    std::cout << '\n';
 
     b = onemore;
     std::cout << '\n';
     for (size_t i = 0; i < b.size(); i++) {
-        std::cout << b[i] << '\n';
+        std::cout << b[i] << ' ';
     }
+    std::cout << '\n';
 
     for (size_t i = 0; i < onemore.size(); i++) {
-        std::cout << onemore[i] << '\n';
+        std::cout << onemore[i] << ' ';
     }
+    std::cout << '\n';
 
-    //swap(c, d);
+    swap(c, d);
     for (auto it = c.begin(); it != c.end(); it++) {
-        std::cout << *it << '\n';
+        std::cout << *it << ' ';
     }
+    std::cout << '\n';
 
     for (size_t i = 0; i < onemore.size(); i++) {
-        std::cout << onemore[i] << '\n';
+        std::cout << onemore[i] << ' ';
     }
     std::cout << '\n';
 
     while (onemore.size() < 10) {
-        std::cout << *onemore.insert(onemore.end() - 3, onemore.size() + 10) << '\n';
+        std::cout << *onemore.insert(onemore.end() - 2 + (onemore.size() % 2), onemore.size() + 10) << ' ';
     }
     std::cout << '\n';
     for (size_t i = 0; i < onemore.size(); i++) {
-        std::cout << onemore[i] << '\n';
+        std::cout << onemore[i] << ' ';
     }
+    std::cout << '\n';
+
+    onemore.clear();
+    std::cout << "cleared\n";
+    onemore.push_front(222);
+    onemore.push_back(223);
+    for (size_t i = 0; i < onemore.size(); i++) {
+        std::cout << onemore[i] << ' ';
+    }
+    std::cout << '\n';
+
+    deque<int> no_imaginary;
+    for (int i = 1; i < 5; i++) {
+        no_imaginary.push_back(i);
+    }
+    for (int i = 6; i <= 100; i++) {
+        no_imaginary.push_front(i);
+        no_imaginary.erase(no_imaginary.end() - 2);
+    }
+
+    for (size_t i = 0; i < no_imaginary.size(); i++) {
+        std::cout << no_imaginary[i] << ' ';
+    }
+    std::cout << '\n';
     return 0;
 }
